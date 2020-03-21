@@ -1,26 +1,48 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {useEffect} from 'react';
+import {connect} from "react-redux";
+import {getPlaceholders} from "./actions";
+import {Link, Route, Switch} from "react-router-dom";
+import Post from "./components/Post";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const App = ({isLoading, hasError, data, errorMessage, getPlaceholders}) => {
+    useEffect(() => {
+        getPlaceholders()
+    }, []);
 
-export default App;
+    console.log(hasError);
+    if (hasError) {
+        return <div>Error message: {errorMessage}</div>;
+    }
+
+    return (
+        <Switch>
+            <Route exact path='/' render={() => {
+
+                return (
+                    isLoading
+                        ? 'Loading'
+                        : data.map((item) => {
+                            return (
+                                <h2>
+                                    <Link key={item.id} to={`posts/${item.id}`}>{item.title}</Link>
+                                </h2>
+                            )
+                        })
+
+                );
+            }}/>
+            <Route path='/posts/:id' component={Post}/>
+
+        </Switch>
+    );
+};
+
+const mapStateToProps = ({isLoading, hasError, data, errorMessage}) => ({
+    isLoading, hasError, data, errorMessage
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    getPlaceholders: () => dispatch(getPlaceholders())
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
